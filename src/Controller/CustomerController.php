@@ -8,13 +8,16 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Entity\Customer;
+use App\Service\MyHelper;
 use Doctrine\Persistence\ManagerRegistry;
+use Psr\Log\LoggerInterface;
 
 class CustomerController extends AbstractController
 {
     #[Route('/formcustomer', name: 'formcustomer')]
-    public function index(Request $request, ManagerRegistry $doctrine)
+    public function index(Request $request, ManagerRegistry $doctrine, LoggerInterface $logger, MyHelper $helper)
     {
+       $date =  $helper->getTheDate();
         $customer = new Customer();
        $customerform = $this->createForm(CustomerType::class, $customer);
 
@@ -24,6 +27,7 @@ class CustomerController extends AbstractController
        {
         $entitymanager = $doctrine->getManager();
         $client = $customerform->getData();
+        $logger->log('info', 'un client à été ajouté');
 
         $entitymanager->persist($client);
         $entitymanager->flush();
@@ -33,7 +37,8 @@ class CustomerController extends AbstractController
 
 
         return $this->render('customer/index.html.twig', [
-            'customerform'=> $customerform->createView()
+            'customerform'=> $customerform->createView(),
+            'date'=> $date
         ]);
     }
 }
